@@ -1,0 +1,9 @@
+{
+    "recommendations": [
+        "ms-vscode.cpptools",
+        "ms-vscode.makefile-tools",
+        "ms-vscode.vscode-serial-monitor",
+        "eclipse-cdt.peripheral-inspector",
+        "mcu-debug.memory-view"
+    ]
+}

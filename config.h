@@ -1,0 +1,2 @@
+#define SYSCLK_FREQ_48MHz_HSE
+#define SDI_PRINT SDI_PR_OPEN

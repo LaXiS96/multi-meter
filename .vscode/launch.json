@@ -1,0 +1,33 @@
+{
+    "configurations": [
+        {
+            "name": "OpenOCD",
+            "type": "cppdbg",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "program": "${workspaceFolder}/build/firmware.elf",
+            // "stopAtEntry": true,
+            "debugServerPath": "${userHome}/MRS_Toolchain_Linux_X64_V240/OpenOCD/OpenOCD/bin/openocd",
+            "debugServerArgs": "-f ${userHome}/MRS_Toolchain_Linux_X64_V240/OpenOCD/OpenOCD/bin/wch-riscv.cfg",
+            "filterStderr": true,
+            "MIMode": "gdb",
+            "miDebuggerServerAddress": "localhost:3333",
+            "useExtendedRemote": true,
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            "postRemoteConnectCommands": [
+                {
+                    "text": "monitor reset init"
+                }
+            ],
+            "svdPath": "${workspaceFolder}/CH32V003xx.svd",
+            "definitionPath": "${workspaceFolder}/CH32V003xx.svd"
+        }
+    ],
+    "version": "2.0.0"
+}

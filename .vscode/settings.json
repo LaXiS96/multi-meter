@@ -1,0 +1,6 @@
+{
+    "files.insertFinalNewline": true,
+    "editor.formatOnSave": true,
+    "makefile.configureOnOpen": true,
+    "makefile.phonyOnlyTargets": true
+}

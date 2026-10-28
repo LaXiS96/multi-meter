@@ -1,0 +1,9 @@
+{
+    "configurations": [
+        {
+            "name": "Makefile",
+            "configurationProvider": "ms-vscode.makefile-tools"
+        }
+    ],
+    "version": 4
+}
