@@ -7,6 +7,8 @@ SVD obtained from `MounRiverStudio_Linux_X64_V2.5.0.tar.xz`.
 
 https://cdn-shop.adafruit.com/datasheets/SSD1306.pdf
 
+https://github.com/mludvig/mini-printf
+
 ## TODO
 - use ch32v003-envsensor as a reference
 - use ch32v003-zig for debugging setup/tasks and extensions

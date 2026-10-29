@@ -1,7 +1,7 @@
 TARGET   = firmware
 CONFIG   = config.h
-SRCDIRS  = src lib/src sdk/Core sdk/Debug sdk/Peripheral/src sdk/Startup sdk/User
-INCDIRS  = include lib/include sdk/Core sdk/Debug sdk/Peripheral/inc sdk/User
+SRCDIRS  = src lib sdk/Core sdk/Debug sdk/Peripheral/src sdk/Startup sdk/User
+INCDIRS  = include lib sdk/Core sdk/Debug sdk/Peripheral/inc sdk/User
 BUILDDIR = build
 OUTPUT   = $(BUILDDIR)/$(TARGET)
 LDSCRIPT = sdk/Ld/Link.ld
