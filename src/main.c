@@ -1,5 +1,6 @@
 #include <ch32v00x.h>
 
+#include "bits.h"
 #include "ssd1306.h"
 #include "ina226.h"
 
@@ -8,6 +9,9 @@
 #define OLED_HEIGHT 32
 
 #define INA_ADDR 0x40
+#define INA_SHUNT_UOHM 100000
+
+// TODO if i2c device is disconnected or does not respond, the flow hangs. maybe add timeouts in while loops
 
 void i2c_init(void)
 {
@@ -178,15 +182,52 @@ int main(void)
 
     // TODO display font rendering (match ssd1306 gddram format)
 
-    // TODO ina226
+    // INA226
+    // 0.1Ohm shunt -> 25uA resolution
     uint8_t buf[8] = {0};
     i2c_read(INA_ADDR, (uint8_t[]){INA226_MANUFACTURER_ID}, 1, buf, 2);
+
+    // Reset
+    i2c_write(INA_ADDR, (uint8_t[]){INA226_CONFIGURATION, 0x80, 0x00}, 3);
+
+    // Note: no point in going lower than 25uA LSB since that's the ADC max resolution
+    // CAL = 0.00512 / (uA * 0.1Ohm)
+    // Current_LSB = 25uA = 819.2mA / 2^15, CAL = 2048
+    // Current_LSB = 50uA = 1.6384A / 2^15, CAL = 1024
+    // Current_LSB = 100uA = 3.2768A / 2^15, CAL = 512
+    // Current_LSB = 200uA = 6.5526A / 2^15, CAL = 256
+    uint32_t current_lsb = 25; // uA
+    uint32_t cal = (5120 * 1000000ULL) / ((uint64_t)current_lsb * INA_SHUNT_UOHM);
+    i2c_write(INA_ADDR, (uint8_t[]){INA226_CALIBRATION, u16be(cal)}, 3);
+
+    // TODO use interrupt alert on cnvr
+
+    i2c_read(INA_ADDR, (uint8_t[]){INA226_CONFIGURATION}, 1, buf, 2);
+    uint16_t config = ((uint16_t)buf[0] << 8) | buf[1];
+    // Conversion time = n_avg * (t_vbus + t_vshunt)
+    // 64 avg * (1.1ms + 0.14ms) = ~80ms
+    // Effective resolution with averaging = Current_LSB / sqrt(n_avg)
+    // 16 -> 6.26uA
+    // 64 -> 3.125uA
+    // 256 -> 1.5625uA
+    // 512 -> 1.1uA
+    // 1024 -> 0.78uA
+    bsm(config, 9, 0b111, INA226_AVERAGE_64);
+    bsm(config, 6, 0b111, INA226_CONVTIME_1100us); // Vbus
+    bsm(config, 3, 0b111, INA226_CONVTIME_332us);  // Vshunt
+    i2c_write(INA_ADDR, (uint8_t[]){INA226_CONFIGURATION, u16be(config)}, 3);
 
     while (1)
     {
         i2c_read(INA_ADDR, (uint8_t[]){INA226_BUS_VOLTAGE}, 1, buf, 2);
-        uint32_t vbus = ((buf[0] << 8) | buf[1]) * 125;
-        printf("bus: %lu\n", vbus);
+        uint32_t vbus = u8to16(buf[0], buf[1]) * 125 / 100; // 1.25mV LSB
+        i2c_read(INA_ADDR, (uint8_t[]){INA226_CURRENT}, 1, buf, 2);
+        int32_t current = u8to16(buf[0], buf[1]) * current_lsb;
+        i2c_read(INA_ADDR, (uint8_t[]){INA226_POWER}, 1, buf, 2);
+        uint32_t power = u8to16(buf[0], buf[1]) * current_lsb * 25; // Power_LSB = Current_LSB * 25
+
+        printf("%lumV %lduA %luuW\n", vbus, current, power);
+
         Delay_Ms(100);
     }
 }

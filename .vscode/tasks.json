@@ -12,5 +12,11 @@
                 "isDefault": true
             }
         },
+        {
+            "type": "shell",
+            "label": "Enable SDI print",
+            "command": "${userHome}/wlink-linux-x64/wlink sdi-print enable",
+            "problemMatcher": []
+        }
     ]
 }
