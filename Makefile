@@ -23,7 +23,7 @@ NM        = $(PREFIX)nm
 # Note: using nano.specs, libc and libm are replaced with their nano variants
 # 		nosys.specs provides stubs for standard syscalls
 # 		also note that libg is the debug build of libc
-CFLAGS    = -march=rv32ec_xw -mabi=ilp32e -g -nostdlib -specs=nano.specs -specs=nosys.specs
+CFLAGS    = -march=rv32ec_xw -mabi=ilp32e -Og -g -nostdlib -specs=nano.specs -specs=nosys.specs
 CFLAGS   += -flto -ffunction-sections -fdata-sections -fno-builtin
 CFLAGS   += -include $(CONFIG) $(addprefix -I,$(INCDIRS))
 CFLAGS   += -Wall -Wno-misleading-indentation

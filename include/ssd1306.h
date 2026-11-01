@@ -1,5 +1,4 @@
-#ifndef SSD1306_H
-#define SSD1306_H
+#pragma once
 
 #define SSD1306_CONTROL_COMMANDS 0x00
 #define SSD1306_CONTROL_DATA 0x40
@@ -26,4 +25,7 @@
 #define SSD1306_PRECHARGE 0xD9
 #define SSD1306_NOP 0xE3
 
-#endif
+void ssd1306_init(void);
+void ssd1306_blank(void);
+void ssd1306_flush(void);
+void ssd1306_text(const char *str, uint8_t line, uint8_t col);
