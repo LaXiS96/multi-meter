@@ -9,6 +9,7 @@ https://cdn-shop.adafruit.com/datasheets/SSD1306.pdf
 
 https://github.com/mludvig/mini-printf
 
+INA226 preferred wiring: IN+ to supply positive, IN- to load positive, load to supply negative/ground. This avoids lifting the load ground.
+
 ## TODO
-- use ch32v003-envsensor as a reference
-- use ch32v003-zig for debugging setup/tasks and extensions
+- extract sdk into submodule repo, reuse in other ch32v003 projects

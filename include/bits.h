@@ -8,3 +8,6 @@
 
 /** Converts an unsigned 16bit value into two big endian 8bit values */
 #define u16be(v) (uint8_t)((v) >> 8), (uint8_t)(v)
+
+/** Returns the absolute value of int32_t as uint32_t */
+#define u32abs(v) ((v) < 0 ? (0U - (uint32_t)(v)) : (uint32_t)(v))

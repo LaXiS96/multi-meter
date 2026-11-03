@@ -1,5 +1,7 @@
 #pragma once
 
+#include <stddef.h>
+
 void i2c_init(void);
 
 /**
