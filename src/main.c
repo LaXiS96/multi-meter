@@ -5,6 +5,7 @@
 #include "i2c.h"
 #include "ssd1306.h"
 #include "ina226.h"
+#include "font.h"
 
 static volatile bool alert = false;
 
@@ -45,13 +46,15 @@ int main(void)
     // PC2 = SCL, PC1 = SDA
     i2c_init();
 
-    // TODO display font rendering (match ssd1306 gddram format)
     ssd1306_init();
 
     // TODO read shunt voltage instead of current and power registers, should be faster too
     ina226_init(25);
     ina226_alert(INA226_ALERT_ON_CONVERSION_READY);
     ina226_configure(INA226_AVERAGE_64, INA226_CONVTIME_1100us, INA226_CONVTIME_1100us);
+
+    uint8_t left_advance = font_get_text_advance(&font, "-") + font_get_max_advance(&font, '0', '9') * 3;
+    uint16_t advance = 0;
 
     char str[16] = {0};
     while (1)
@@ -73,12 +76,28 @@ int main(void)
             char *power_uom = power > 1000000 ? "W" : "mW";
 
             ssd1306_blank();
-            mini_snprintf(str, sizeof(str), "%lu.%03lu V", vbus_int, vbus_dec);
-            ssd1306_text(str, 0, 0);
-            mini_snprintf(str, sizeof(str), "%s%ld.%03ld mA", current_sign, current_int, current_dec);
-            ssd1306_text(str, 1, 0);
-            mini_snprintf(str, sizeof(str), "%lu.%03lu %s", power_int, power_dec, power_uom);
-            ssd1306_text(str, 2, 0);
+
+            advance = font_get_text_advance(&font, "V");
+            ssd1306_print(&font, 0, SSD1306_WIDTH - advance, "V");
+
+            mini_snprintf(str, sizeof(str), "%lu", vbus_int);
+            advance = font_get_text_advance(&font, str);
+            ssd1306_print(&font, 0, left_advance - advance, str);
+            mini_snprintf(str, sizeof(str), ".%03lu", vbus_dec);
+            ssd1306_print(&font, 0, left_advance, str);
+
+            advance = font_get_text_advance(&font, "mA");
+            ssd1306_print(&font, 2, SSD1306_WIDTH - advance, "mA");
+
+            mini_snprintf(str, sizeof(str), "%s%ld", current_sign, current_int);
+            advance = font_get_text_advance(&font, str);
+            ssd1306_print(&font, 2, left_advance - advance, str);
+            mini_snprintf(str, sizeof(str), ".%03ld", current_dec);
+            ssd1306_print(&font, 2, left_advance, str);
+
+            // mini_snprintf(str, sizeof(str), "%lu.%03lu %s", power_int, power_dec, power_uom);
+            // ssd1306_text(str, 2, 0);
+
             ssd1306_flush();
 
             // Read INA226 flags to reset alert/conversion ready flag

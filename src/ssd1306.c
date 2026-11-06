@@ -84,3 +84,75 @@ void ssd1306_text(const char *str, uint8_t line, uint8_t col)
         f++;
     }
 }
+
+void ssd1306_draw_glyph(const ssd1306_font_t *font, int16_t page, int16_t x, uint16_t c)
+{
+    if (c < font->first_char || c > font->last_char)
+        return;
+
+    const ssd1306_glyph_t *glyph = &font->glyphs[c - font->first_char];
+    const uint8_t *bitmap = &font->bitmap[glyph->bitmap_offset];
+
+    uint8_t pages = (glyph->height + 7) / 8;
+    x += glyph->x_offset;
+    for (uint8_t col = 0; col < glyph->width; col++)
+    {
+        int16_t px = x + col;
+        if (px < 0 || px >= SSD1306_WIDTH)
+            continue;
+
+        for (uint8_t p = 0; p < pages; p++)
+        {
+            int16_t dst_page = page + p;
+            if (dst_page < 0 || dst_page >= SSD1306_HEIGHT / 8)
+                continue;
+
+            fb[dst_page * SSD1306_WIDTH + px] = bitmap[col * pages + p];
+        }
+    }
+}
+
+void ssd1306_print(const ssd1306_font_t *font, int16_t page, int16_t x, const char *text)
+{
+    int32_t cursor_x = x;
+    while (*text)
+    {
+        uint8_t c = (uint8_t)*text++;
+        if (c < font->first_char || c > font->last_char)
+            continue;
+
+        // TODO redundant glyph mapping here and in draw_glyph
+        const ssd1306_glyph_t *glyph = &font->glyphs[c - font->first_char];
+        ssd1306_draw_glyph(font, page, cursor_x, c);
+        cursor_x += glyph->x_advance;
+    }
+}
+
+uint16_t font_get_text_advance(const ssd1306_font_t *font, char *text)
+{
+    uint16_t width = 0;
+    while (*text)
+    {
+        uint8_t c = (uint8_t)*text++;
+        if (c < font->first_char || c > font->last_char)
+            continue;
+        width += font->glyphs[c - font->first_char].x_advance;
+    }
+    return width;
+}
+
+uint8_t font_get_max_advance(const ssd1306_font_t *font, char first_char, char last_char)
+{
+    if (first_char < font->first_char)
+        first_char = font->first_char;
+    if (last_char > font->last_char)
+        last_char = font->last_char;
+    uint8_t max = 0;
+    for (uint16_t c = first_char; c <= last_char; c++)
+    {
+        uint8_t advance = font->glyphs[c - font->first_char].x_advance;
+        if (advance > max)
+            max = advance;
+    }
+    return max;
+}
