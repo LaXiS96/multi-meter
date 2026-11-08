@@ -1,43 +1,41 @@
 # multi-meter
 
-SDK obtained from repository `https://github.com/openwch/ch32v003` folder `EVT/EXAM/SRC`.  
-SVD obtained from `MounRiverStudio_Linux_X64_V2.5.0.tar.xz`.
+Measurement tool based on the INA226 voltage/current monitor, with OLED display, using a CH32V003 microcontroller.
 
-[`wlink`](https://github.com/ch32-rs/wlink/releases)
+## Hardware
+
+- CH32V003 WeActStudio CoreBoard
+- INA226 board
+    - 100mOhm shunt, 25uA resolution, +/-819.2mA range (~82mV max drop)
+    - Wiring:
+        - VBUS and IN+ to supply positive, IN- to load
+        - Supply and load GND must be shared
+        - Any voltage on IN+/IN-/VBUS must not exceed 36V referenced to GND
+- [0.91" white OLED](https://www.lcdwiki.com/0.91inch_IIC_OLED_Module_SSD1306_SKU:MC091GX)
+- Powered by 1/2 AA/AAA cells via TPS613221A 3.3V boost converter
+    - 18mW measured the battery, with following settings:
+        - CH32V003: 8MHz HSI, standby (deep sleep) with auto wakeup every 148ms
+        - INA226: 64 average 1.1ms bus 1.1ms shunt
+    - Should last 100+ hours with a pair of 850mAh NiMH AAA cells (= ~2Wh)
+    - In alternative: 18650 Li-ion via TPS63802 3.3V buck-boost converter, with TP4056 1A USB charger + DW01 cell protection
+        - (requires voltage divider at ADC input)
+
+## Software components and tools
+
+- [Official SDK](https://github.com/openwch/ch32v003) from folder `EVT/EXAM/SRC`
+- SVD obtained from `MounRiverStudio_Linux_X64_V2.5.0.tar.xz`
+- [wlink](https://github.com/ch32-rs/wlink/releases)
+- [mini-printf](https://github.com/mludvig/mini-printf)
+
+Font generated with: https://github.com/LaXiS96/embedded-font-converter
 
 https://cdn-shop.adafruit.com/datasheets/SSD1306.pdf
 
-https://github.com/mludvig/mini-printf
-
-INA226 wiring:
-- IN+ to supply positive
-- IN- to load positive
-- supply and load GND must be shared, and any voltage on IN+/IN-/VBUS must not exceed 36V referenced to GND
-
-Generate fonts with: https://github.com/LaXiS96/embedded-font-converter
-
 ## TODO
+- implement I2C error handling:
+    - timeout in blocking flag check loops, check I2C peripheral error flags and abort
+    - recover bus?
+- PA2 ADC readout for battery voltage
+- interrupt/DMA based I2C transactions
 - extract sdk into submodule repo, reuse in other ch32v003 projects
-- hardware:
-    - CH32V003
-        - prefer WeAct CoreBoard since it doesn't have HSE which we don't need
-    - power source
-        - option 1: li-ion 18650 -> TP4056+DW01 (1A charge current) -> MCP1700
-            - ~10Wh, LDO has low efficiency at high Vin-Vout difference, may not maintain 3.3V during li-ion discharge
-        - option 2: li-ion 18650 -> TP4056+DW01 (1A charge current) -> TPS63802
-            - ~10Wh, high efficiency, stable 3.3V until cutoff, (switching noise)
-        - option 3: 1 or 2 NiMH cells (no charger/protection) -> TPS61322
-            - ~2.5Wh or ~5Wh, lower energy density, needs external charger but cells can be replaced, may last longer when not in use
-        - option n: li-ion 500mAh 13350 -> TP4056+DW01 (modified for lower charge current) -> ???
-    - TP4056
-        - B+/- to cell
-        - OUT+ to power switch
-        - OUT- to common GND
-    - MCP1700 3.3V LDO
-        - Vin from power switch
-        - Vout to common 3V3
-        - bypass caps
-    - battery voltage monitoring
-        - use ADC connected to LDO Vin, requires voltage divider
-    - banana binding posts for current (with banana to test clips cable)
-    - ??? for voltage
+- remove alert connection since it's not used anymore

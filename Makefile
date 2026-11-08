@@ -11,8 +11,10 @@ PREFIX   = "$(HOME)/MRS_Toolchain_Linux_X64_V240/Toolchain/RISC-V Embedded GCC15
 OOCDDIR   = $(HOME)/MRS_Toolchain_Linux_X64_V240/OpenOCD/OpenOCD
 OPENOCD   = $(OOCDDIR)/bin/openocd -f $(OOCDDIR)/bin/wch-riscv.cfg
 
-# FLASHER   = $(OPENOCD) -c "program $(OUTPUT).elf verify" -c reset -c wlink_reset_resume -c exit
-FLASHER   = $(HOME)/wlink-linux-x64/wlink flash --enable-sdi-print $(OUTPUT).elf
+# FLASH_CMD = $(OPENOCD) -c "program $(OUTPUT).elf verify" -c reset -c wlink_reset_resume -c exit
+FLASH_CMD = wlink flash --enable-sdi-print $(OUTPUT).elf
+ERASE_CMD = wlink erase --chip CH32V003 --method power-off
+SDI_CMD   = wlink sdi-print enable
 
 CC        = $(PREFIX)gcc
 OBJCOPY   = $(PREFIX)objcopy
@@ -82,10 +84,16 @@ debug: $(OUTPUT).elf
 	@$(OPENOCD)
 
 flash: $(OUTPUT).bin
-	@$(FLASHER)
+	@$(FLASH_CMD)
+
+erase:
+	@$(ERASE_CMD)
+
+sdi:
+	@$(SDI_CMD)
 
 clean:
 	@rm -rf $(BUILDDIR)
 
-.PHONY: all bin asm lst map size symbols debug flash clean
+.PHONY: all bin asm lst map size symbols debug flash erase sdi clean
 .SUFFIXES:

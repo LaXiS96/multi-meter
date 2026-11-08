@@ -1,4 +1,4 @@
-#define SYSCLK_FREQ_48MHz_HSE
+#define SYSCLK_FREQ_8MHz_HSI
 #define SDI_PRINT SDI_PR_OPEN
 
 #define SSD1306_ADDR 0x3C
