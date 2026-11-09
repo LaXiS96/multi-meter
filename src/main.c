@@ -8,7 +8,7 @@
 #include "font.h"
 #include "time.h"
 
-void low_power_init(void)
+static void low_power_init(void)
 {
     // TODO sdk example also disabled sdi
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA | RCC_APB2Periph_GPIOC | RCC_APB2Periph_GPIOD, ENABLE);
@@ -21,7 +21,7 @@ void low_power_init(void)
     GPIO_Init(GPIOD, &init);
 }
 
-void awu_init(void)
+static void awu_init(void)
 {
     RCC_APB1PeriphClockCmd(RCC_APB1Periph_PWR, ENABLE);
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_AFIO, ENABLE);
@@ -44,8 +44,48 @@ void awu_init(void)
         ;
 }
 
+static void adc_init(void)
+{
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_ADC1, ENABLE);
+
+    GPIO_Init(GPIOA, &(GPIO_InitTypeDef){
+                         .GPIO_Pin = GPIO_Pin_2,
+                         .GPIO_Mode = GPIO_Mode_AIN,
+                     });
+
+    ADC_DeInit(ADC1);
+    ADC_Init(ADC1, &(ADC_InitTypeDef){
+                       .ADC_Mode = ADC_Mode_Independent,
+                       .ADC_ScanConvMode = DISABLE,
+                       .ADC_ContinuousConvMode = DISABLE,
+                       .ADC_ExternalTrigConv = ADC_ExternalTrigConv_None,
+                       .ADC_DataAlign = ADC_DataAlign_Right,
+                       .ADC_NbrOfChannel = 1,
+                   });
+    ADC_Cmd(ADC1, ENABLE);
+
+    ADC_ResetCalibration(ADC1);
+    while (ADC_GetResetCalibrationStatus(ADC1))
+        ;
+    ADC_StartCalibration(ADC1);
+    while (ADC_GetCalibrationStatus(ADC1))
+        ;
+}
+
+static uint16_t adc_read(uint8_t channel, uint8_t sample_time)
+{
+    ADC_RegularChannelConfig(ADC1, channel, 1, sample_time);
+    ADC_SoftwareStartConvCmd(ADC1, ENABLE);
+    while (ADC_GetFlagStatus(ADC1, ADC_FLAG_EOC) != SET)
+        ;
+    return ADC_GetConversionValue(ADC1);
+}
+
 int main(void)
 {
+    char str[24] = {0};
+
     NVIC_PriorityGroupConfig(NVIC_PriorityGroup_1);
     SystemCoreClockUpdate();
     SDI_Printf_Enable();
@@ -55,10 +95,30 @@ int main(void)
     low_power_init();
     awu_init();
 
+    adc_init();
+
+    // ADC channel 8 = internal Vref = 1.2V
+    // Vref in raw ADC counts
+    uint16_t vref_adc = adc_read(ADC_Channel_8, ADC_SampleTime_241Cycles);
+
+    // ADC channel 0 = PA2 = connected to battery positive
+    // Vin in mV
+    uint32_t vin = adc_read(ADC_Channel_0, ADC_SampleTime_241Cycles) * 1200 / vref_adc;
+
     // PC2 = SCL, PC1 = SDA
     i2c_init();
 
     ssd1306_init();
+
+    ssd1306_blank();
+    snprintf(str, sizeof(str), "Vin: %u", vin);
+    ssd1306_text(str, 0, 0);
+    if (vin <= 2000)
+        ssd1306_text("Critical battery!", 1, 0);
+    else if (vin <= 2200)
+        ssd1306_text("Low battery!", 1, 0);
+    ssd1306_flush();
+    time_delay_ms(2000);
 
     ina226_init(25, 0);
     ina226_configure(INA226_AVERAGE_64, INA226_CONVTIME_1100us, INA226_CONVTIME_1100us);
@@ -66,7 +126,6 @@ int main(void)
     uint8_t left_advance = font_get_text_advance(&font, "-") + font_get_max_advance(&font, '0', '9') * 3;
     uint16_t advance = 0;
 
-    char str[16] = {0};
     while (1)
     {
         ssd1306_blank();
