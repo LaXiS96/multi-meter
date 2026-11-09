@@ -45,30 +45,34 @@ void ina226_alert(ina226_alert_t alert)
     i2c_write(INA226_ADDR, (uint8_t[]){INA226_REG_MASK_ENABLE, u16be(alert)}, 3);
 }
 
-uint32_t ina226_read_bus_voltage(void)
+err_t ina226_read_bus_voltage(uint32_t *bus_voltage)
 {
     uint8_t buf[2] = {0};
-    i2c_read(INA226_ADDR, (uint8_t[]){INA226_REG_BUS_VOLTAGE}, 1, buf, 2);
-    return u8to16(buf[0], buf[1]) * 125 / 100; // 1.25mV LSB
+    ERR_RETURN(i2c_read(INA226_ADDR, (uint8_t[]){INA226_REG_BUS_VOLTAGE}, 1, buf, 2));
+    *bus_voltage = u8to16(buf[0], buf[1]) * 125 / 100; // 1.25mV LSB
+    return OK;
 }
 
-int32_t ina226_read_current(void)
+err_t ina226_read_current(int32_t *current)
 {
     uint8_t buf[2] = {0};
-    i2c_read(INA226_ADDR, (uint8_t[]){INA226_REG_CURRENT}, 1, buf, 2);
-    return (int16_t)(u8to16(buf[0], buf[1])) * (int32_t)_current_lsb;
+    ERR_RETURN(i2c_read(INA226_ADDR, (uint8_t[]){INA226_REG_CURRENT}, 1, buf, 2));
+    *current = (int16_t)(u8to16(buf[0], buf[1])) * (int32_t)_current_lsb;
+    return OK;
 }
 
-uint32_t ina226_read_power(void)
+err_t ina226_read_power(uint32_t *power)
 {
     uint8_t buf[2] = {0};
-    i2c_read(INA226_ADDR, (uint8_t[]){INA226_REG_POWER}, 1, buf, 2);
-    return u8to16(buf[0], buf[1]) * _current_lsb * 25; // Power_LSB = Current_LSB * 25
+    ERR_RETURN(i2c_read(INA226_ADDR, (uint8_t[]){INA226_REG_POWER}, 1, buf, 2));
+    *power = u8to16(buf[0], buf[1]) * _current_lsb * 25; // Power_LSB = Current_LSB * 25
+    return OK;
 }
 
-ina226_flags_t ina226_read_flags(void)
+err_t ina226_read_flags(ina226_flag_t *flags)
 {
     uint8_t buf[2] = {0};
-    i2c_read(INA226_ADDR, (uint8_t[]){INA226_REG_MASK_ENABLE}, 1, buf, 2);
-    return (uint16_t)u8to16(buf[0], buf[1]);
+    ERR_RETURN(i2c_read(INA226_ADDR, (uint8_t[]){INA226_REG_MASK_ENABLE}, 1, buf, 2));
+    *flags = (uint16_t)u8to16(buf[0], buf[1]);
+    return OK;
 }

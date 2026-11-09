@@ -6,6 +6,7 @@
 #include "ssd1306.h"
 #include "ina226.h"
 #include "font.h"
+#include "time.h"
 
 void low_power_init(void)
 {
@@ -47,8 +48,9 @@ int main(void)
 {
     NVIC_PriorityGroupConfig(NVIC_PriorityGroup_1);
     SystemCoreClockUpdate();
-    Delay_Init();
     SDI_Printf_Enable();
+
+    time_init();
 
     low_power_init();
     awu_init();
@@ -70,14 +72,17 @@ int main(void)
     {
         ssd1306_blank();
 
-        uint32_t flags = ina226_read_flags();
+        ina226_flag_t flags = 0;
+        ERR_GOTO(ina226_read_flags(&flags), error);
         if (flags & INA226_FLAG_CONVERSION_READY)
         {
-            uint32_t vbus = ina226_read_bus_voltage();
+            uint32_t vbus = 0;
+            ERR_GOTO(ina226_read_bus_voltage(&vbus), error);
             uint32_t vbus_int = vbus / 1000;
             uint32_t vbus_dec = vbus % 1000;
 
-            int32_t current = ina226_read_current();
+            int32_t current = 0;
+            ERR_GOTO(ina226_read_current(&current), error);
             char *current_sign = current < 0 ? "-" : "";
             uint32_t current_int = u32abs(current) / 1000;
             uint32_t current_dec = u32abs(current) % 1000;
@@ -110,8 +115,31 @@ int main(void)
         }
         else
         {
-            mini_snprintf(str, sizeof(str), "0x%x", flags);
-            ssd1306_text(str, 0, 0);
+        error:
+            // TODO move mapping to errors.h
+            const char *err_str = "";
+            switch (err)
+            {
+            case I2C_TIMEOUT:
+                err_str = "I2C_TIMEOUT";
+                break;
+            case I2C_NACK:
+                err_str = "I2C_NACK";
+                break;
+            case I2C_BUS_ERROR:
+                err_str = "I2C_BUS_ERROR";
+                break;
+            case I2C_ARBITRATION_LOST:
+                err_str = "I2C_ARBITRATION_LOST";
+                break;
+            case I2C_OVERRUN:
+                err_str = "I2C_OVERRUN";
+                break;
+            default:
+                mini_snprintf(str, sizeof(str), "0x%X", flags);
+                err_str = str;
+            }
+            ssd1306_text(err_str, 0, 0);
         }
 
         ssd1306_flush();

@@ -2,6 +2,8 @@
 
 #include <stdint.h>
 
+#include "errors.h"
+
 typedef enum
 {
     INA226_REG_CONFIGURATION = 0x00,
@@ -57,7 +59,7 @@ typedef enum
     INA226_FLAG_OVERFLOW = (1 << 2),
     INA226_FLAG_CONVERSION_READY = (1 << 3),
     INA226_FLAG_ALERT = (1 << 4),
-} ina226_flags_t;
+} ina226_flag_t;
 
 /**
  * Note: the ADC resolution is 2.5uV, which corresponds to 25uA with a 100mOhm shunt.
@@ -79,7 +81,7 @@ void ina226_configure(ina226_average_t average, ina226_convtime_t bus_convtime, 
  */
 void ina226_alert(ina226_alert_t alert);
 
-uint32_t ina226_read_bus_voltage(void);
-int32_t ina226_read_current(void);
-uint32_t ina226_read_power(void);
-ina226_flags_t ina226_read_flags(void);
+err_t ina226_read_bus_voltage(uint32_t *bus_voltage);
+err_t ina226_read_current(int32_t *current);
+err_t ina226_read_power(uint32_t *power);
+err_t ina226_read_flags(ina226_flag_t *flags);

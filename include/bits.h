@@ -1,5 +1,11 @@
 #pragma once
 
+/** Sets the bit at `offset` in `target` */
+#define bis(target, offset) (target) |= (1 << (offset))
+
+/** Clears the bit at `offset` in `target` */
+#define bic(target, offset) (target) &= ~(1 << (offset))
+
 /** Bit Set Masked: sets `bits` at offset `shift` in `target` after clearing them */
 #define bsm(target, shift, mask, bits) ((target) = ((target) & ~((mask) << (shift))) | (((bits) & (mask)) << (shift)))
 

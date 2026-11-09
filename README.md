@@ -13,7 +13,7 @@ Measurement tool based on the INA226 voltage/current monitor, with OLED display,
         - Any voltage on IN+/IN-/VBUS must not exceed 36V referenced to GND
 - [0.91" white OLED](https://www.lcdwiki.com/0.91inch_IIC_OLED_Module_SSD1306_SKU:MC091GX)
 - Powered by 1/2 AA/AAA cells via TPS613221A 3.3V boost converter
-    - 18mW measured the battery, with following settings:
+    - 18mW measured at the battery, with following settings:
         - CH32V003: 8MHz HSI, standby (deep sleep) with auto wakeup every 148ms
         - INA226: 64 average 1.1ms bus 1.1ms shunt
     - Should last 100+ hours with a pair of 850mAh NiMH AAA cells (= ~2Wh)
