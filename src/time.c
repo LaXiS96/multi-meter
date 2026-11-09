@@ -8,6 +8,8 @@
 
 #define CMP_VALUE (SystemCoreClock / 1000)
 
+volatile uint32_t time_ms = 0;
+
 void time_init(void)
 {
     SysTick->CTLR = 0;

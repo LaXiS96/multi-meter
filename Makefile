@@ -12,7 +12,7 @@ OOCDDIR   = $(HOME)/MRS_Toolchain_Linux_X64_V240/OpenOCD/OpenOCD
 OPENOCD   = $(OOCDDIR)/bin/openocd -f $(OOCDDIR)/bin/wch-riscv.cfg
 
 # FLASH_CMD = $(OPENOCD) -c "program $(OUTPUT).elf verify" -c reset -c wlink_reset_resume -c exit
-FLASH_CMD = wlink flash --enable-sdi-print $(OUTPUT).elf
+FLASH_CMD = wlink flash --enable-sdi-print "$(OUTPUT).elf"
 ERASE_CMD = wlink erase --chip CH32V003 --method power-off
 SDI_CMD   = wlink sdi-print enable
 
@@ -30,7 +30,7 @@ CFLAGS   += -flto -ffunction-sections -fdata-sections -fno-builtin
 CFLAGS   += -include $(CONFIG) $(addprefix -I,$(INCDIRS))
 CFLAGS   += -Wall -Wno-misleading-indentation
 DEPFLAGS  = -MMD -MP
-LDFLAGS   = -T$(LDSCRIPT) -Wl,--gc-sections -lc -lm -lgcc
+LDFLAGS   = -T$(LDSCRIPT) -Wl,-Map="$(OUTPUT).ldmap",--print-memory-usage,--gc-sections -lc -lm -lgcc
 
 SOURCES  := $(foreach dir,$(SRCDIRS),$(wildcard $(dir)/*.c))
 SOURCES  += $(foreach dir,$(SRCDIRS),$(wildcard $(dir)/*.S))
@@ -39,7 +39,7 @@ OBJECTS  := $(OBJECTS:%.c=%.o)
 OBJECTS  := $(OBJECTS:%.S=%.o)
 DEPFILES := $(OBJECTS:%.o=%.d)
 
-all: bin asm lst map size
+all: bin lst map size
 
 $(DEPFILES):
 -include $(DEPFILES)
@@ -61,10 +61,6 @@ $(OUTPUT).elf: $(OBJECTS)
 bin: $(OUTPUT).bin
 %.bin: %.elf
 	@$(OBJCOPY) -O binary $< $@
-
-asm: $(OUTPUT).asm
-%.asm: %.elf
-	@$(OBJDUMP) -d $< > $@
 
 lst: $(OUTPUT).lst
 %.lst: %.elf
@@ -95,5 +91,5 @@ sdi:
 clean:
 	@rm -rf $(BUILDDIR)
 
-.PHONY: all bin asm lst map size symbols debug flash erase sdi clean
+.PHONY: all bin lst map size symbols debug flash erase sdi clean
 .SUFFIXES:

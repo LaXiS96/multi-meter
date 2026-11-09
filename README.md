@@ -32,9 +32,6 @@ Font generated with: https://github.com/LaXiS96/embedded-font-converter
 https://cdn-shop.adafruit.com/datasheets/SSD1306.pdf
 
 ## TODO
-- implement I2C error handling:
-    - timeout in blocking flag check loops, check I2C peripheral error flags and abort
-    - recover bus?
 - PA2 ADC readout for battery voltage
 - interrupt/DMA based I2C transactions
 - extract sdk into submodule repo, reuse in other ch32v003 projects

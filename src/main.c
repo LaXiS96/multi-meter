@@ -60,8 +60,7 @@ int main(void)
 
     ssd1306_init();
 
-    // TODO read shunt voltage instead of current and power registers, should be faster too in terms of i2c transaction time vs calculation
-    ina226_init(25);
+    ina226_init(25, 0);
     ina226_configure(INA226_AVERAGE_64, INA226_CONVTIME_1100us, INA226_CONVTIME_1100us);
 
     uint8_t left_advance = font_get_text_advance(&font, "-") + font_get_max_advance(&font, '0', '9') * 3;
@@ -77,40 +76,40 @@ int main(void)
         if (flags & INA226_FLAG_CONVERSION_READY)
         {
             uint32_t vbus = 0;
-            ERR_GOTO(ina226_read_bus_voltage(&vbus), error);
+            int32_t current = 0;
+            uint32_t power = 0;
+            ERR_GOTO(ina226_readout(&vbus, &current, &power), error);
+
             uint32_t vbus_int = vbus / 1000;
             uint32_t vbus_dec = vbus % 1000;
-
-            int32_t current = 0;
-            ERR_GOTO(ina226_read_current(&current), error);
-            char *current_sign = current < 0 ? "-" : "";
-            uint32_t current_int = u32abs(current) / 1000;
-            uint32_t current_dec = u32abs(current) % 1000;
-
-            // uint32_t power = ina226_read_power();
-            // int32_t power_int = power > 1000000 ? power / 1000000 : power / 1000;
-            // int32_t power_dec = power > 1000000 ? power % 1000000 : power % 1000;
-            // char *power_uom = power > 1000000 ? "W" : "mW";
 
             advance = font_get_text_advance(&font, "V");
             ssd1306_print(&font, 0, SSD1306_WIDTH - advance, "V");
 
-            mini_snprintf(str, sizeof(str), "%lu", vbus_int);
+            snprintf(str, sizeof(str), "%lu", vbus_int);
             advance = font_get_text_advance(&font, str);
             ssd1306_print(&font, 0, left_advance - advance, str);
-            mini_snprintf(str, sizeof(str), ".%03lu", vbus_dec);
+            snprintf(str, sizeof(str), ".%03lu", vbus_dec);
             ssd1306_print(&font, 0, left_advance, str);
 
             advance = font_get_text_advance(&font, "mA");
             ssd1306_print(&font, 2, SSD1306_WIDTH - advance, "mA");
 
-            mini_snprintf(str, sizeof(str), "%s%ld", current_sign, current_int);
+            char *current_sign = current < 0 ? "-" : "";
+            uint32_t current_int = u32abs(current) / 1000;
+            uint32_t current_dec = u32abs(current) % 1000;
+
+            snprintf(str, sizeof(str), "%s%ld", current_sign, current_int);
             advance = font_get_text_advance(&font, str);
             ssd1306_print(&font, 2, left_advance - advance, str);
-            mini_snprintf(str, sizeof(str), ".%03ld", current_dec);
+            snprintf(str, sizeof(str), ".%03ld", current_dec);
             ssd1306_print(&font, 2, left_advance, str);
 
-            // mini_snprintf(str, sizeof(str), "%lu.%03lu %s", power_int, power_dec, power_uom);
+            // int32_t power_int = power > 1000000 ? power / 1000000 : power / 1000;
+            // int32_t power_dec = power > 1000000 ? power % 1000000 : power % 1000;
+            // char *power_uom = power > 1000000 ? "W" : "mW";
+
+            // snprintf(str, sizeof(str), "%lu.%03lu %s", power_int, power_dec, power_uom);
             // ssd1306_text(str, 2, 0);
         }
         else
@@ -136,7 +135,7 @@ int main(void)
                 err_str = "I2C_OVERRUN";
                 break;
             default:
-                mini_snprintf(str, sizeof(str), "0x%X", flags);
+                snprintf(str, sizeof(str), "0x%X", flags);
                 err_str = str;
             }
             ssd1306_text(err_str, 0, 0);
@@ -146,5 +145,6 @@ int main(void)
 
         PWR_AutoWakeUpCmd(ENABLE);
         PWR_EnterSTANDBYMode(PWR_STANDBYEntry_WFE);
+        // time_delay_ms(150);
     }
 }

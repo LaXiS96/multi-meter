@@ -22,4 +22,4 @@ typedef enum
     I2C_OVERRUN,
 } err_t;
 
-static volatile err_t err;
+extern volatile err_t err;

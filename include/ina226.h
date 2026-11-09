@@ -62,10 +62,17 @@ typedef enum
 } ina226_flag_t;
 
 /**
- * Note: the ADC resolution is 2.5uV, which corresponds to 25uA with a 100mOhm shunt.
+ * Note: ADC resolution is 2.5uV, which corresponds to 25uA with a 100mOhm shunt.
+ *
  * Note: built-in averaging does not seem to do oversampling, so max resolution is limited by the ADC resolution.
+ *
+ * CAL = 0.00512 / (current_lsb * shunt_resistance)
+ * e.g. for 25uA LSB with 0.1Ohm shunt use CAL = 2048
+ *
+ * @param current_lsb in uA
+ * @param cal calibration register value, can be 0 if only using `ina226_readout` function
  */
-void ina226_init(uint32_t current_lsb);
+void ina226_init(uint16_t current_lsb, uint16_t cal);
 
 void ina226_reset(void);
 
@@ -80,6 +87,13 @@ void ina226_configure(ina226_average_t average, ina226_convtime_t bus_convtime, 
  * Note: the highest ALERT_ON_* takes precedence as an alert source.
  */
 void ina226_alert(ina226_alert_t alert);
+
+/**
+ * @param bus_voltage output, in mV
+ * @param current output, in uA
+ * @param power output, in uW
+ */
+err_t ina226_readout(uint32_t *bus_voltage, int32_t *current, uint32_t *power);
 
 err_t ina226_read_bus_voltage(uint32_t *bus_voltage);
 err_t ina226_read_current(int32_t *current);
