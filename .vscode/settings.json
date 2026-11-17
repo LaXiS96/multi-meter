@@ -2,5 +2,6 @@
     "files.insertFinalNewline": true,
     "editor.formatOnSave": true,
     "makefile.configureOnOpen": true,
-    "makefile.phonyOnlyTargets": true
+    "makefile.phonyOnlyTargets": true,
+    "cmake.useCMakePresets": "always"
 }

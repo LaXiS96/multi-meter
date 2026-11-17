@@ -32,7 +32,7 @@ Font generated with: https://github.com/LaXiS96/embedded-font-converter
 https://cdn-shop.adafruit.com/datasheets/SSD1306.pdf
 
 ## TODO
-- PA2 ADC readout for battery voltage
+- add libdevic submodule and migrate I2C, INA226, SSD1306 drivers
+    - consider making platform drivers not dependent on official sdk
 - interrupt/DMA based I2C transactions
-- extract sdk into submodule repo, reuse in other ch32v003 projects
 - remove alert connection since it's not used anymore

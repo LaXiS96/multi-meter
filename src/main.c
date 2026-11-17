@@ -111,14 +111,15 @@ int main(void)
     ssd1306_init();
 
     ssd1306_blank();
-    snprintf(str, sizeof(str), "Vin: %u", vin);
-    ssd1306_text(str, 0, 0);
+    snprintf(str, sizeof(str), "Battery: %u.%uV", vin / 1000, vin % 1000);
+    ssd1306_text(str, 1, 0);
     if (vin <= 2000)
-        ssd1306_text("Critical battery!", 1, 0);
+        ssd1306_text("Critical battery!", 2, 0);
     else if (vin <= 2200)
-        ssd1306_text("Low battery!", 1, 0);
+        ssd1306_text("Low battery!", 2, 0);
     ssd1306_flush();
-    time_delay_ms(2000);
+
+    time_delay_ms(1000);
 
     ina226_init(25, 0);
     ina226_configure(INA226_AVERAGE_64, INA226_CONVTIME_1100us, INA226_CONVTIME_1100us);
@@ -139,29 +140,22 @@ int main(void)
             uint32_t power = 0;
             ERR_GOTO(ina226_readout(&vbus, &current, &power), error);
 
-            uint32_t vbus_int = vbus / 1000;
-            uint32_t vbus_dec = vbus % 1000;
-
             advance = font_get_text_advance(&font, "V");
             ssd1306_print(&font, 0, SSD1306_WIDTH - advance, "V");
 
-            snprintf(str, sizeof(str), "%lu", vbus_int);
+            snprintf(str, sizeof(str), "%lu", vbus / 1000);
             advance = font_get_text_advance(&font, str);
             ssd1306_print(&font, 0, left_advance - advance, str);
-            snprintf(str, sizeof(str), ".%03lu", vbus_dec);
+            snprintf(str, sizeof(str), ".%03lu", vbus % 1000);
             ssd1306_print(&font, 0, left_advance, str);
 
             advance = font_get_text_advance(&font, "mA");
             ssd1306_print(&font, 2, SSD1306_WIDTH - advance, "mA");
 
-            char *current_sign = current < 0 ? "-" : "";
-            uint32_t current_int = u32abs(current) / 1000;
-            uint32_t current_dec = u32abs(current) % 1000;
-
-            snprintf(str, sizeof(str), "%s%ld", current_sign, current_int);
+            snprintf(str, sizeof(str), "%s%ld", current < 0 ? "-" : "", u32abs(current) / 1000);
             advance = font_get_text_advance(&font, str);
             ssd1306_print(&font, 2, left_advance - advance, str);
-            snprintf(str, sizeof(str), ".%03ld", current_dec);
+            snprintf(str, sizeof(str), ".%03ld", u32abs(current) % 1000);
             ssd1306_print(&font, 2, left_advance, str);
 
             // int32_t power_int = power > 1000000 ? power / 1000000 : power / 1000;
@@ -204,6 +198,5 @@ int main(void)
 
         PWR_AutoWakeUpCmd(ENABLE);
         PWR_EnterSTANDBYMode(PWR_STANDBYEntry_WFE);
-        // time_delay_ms(150);
     }
 }
