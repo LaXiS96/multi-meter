@@ -6,8 +6,13 @@
         {
             "type": "shell",
             "label": "Build",
-            "command": "make",
-            "problemMatcher": [],
+            "command": "cmake",
+            "args": [
+                "--build",
+                "--preset",
+                "default"
+            ],
+            "problemMatcher": "$gcc",
             "group": {
                 "kind": "build",
                 "isDefault": true
@@ -16,19 +21,40 @@
         {
             "type": "shell",
             "label": "Enable SDI print",
-            "command": "make sdi",
+            "command": "cmake",
+            "args": [
+                "--build",
+                "--preset",
+                "default",
+                "--target",
+                "enable-sdi"
+            ],
             "problemMatcher": []
         },
         {
             "type": "shell",
             "label": "Flash",
-            "command": "make flash",
+            "command": "cmake",
+            "args": [
+                "--build",
+                "--preset",
+                "default",
+                "--target",
+                "flash"
+            ],
             "problemMatcher": []
         },
         {
             "type": "shell",
             "label": "Erase flash",
-            "command": "make erase",
+            "command": "cmake",
+            "args": [
+                "--build",
+                "--preset",
+                "default",
+                "--target",
+                "erase"
+            ],
             "problemMatcher": []
         }
     ]

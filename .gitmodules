@@ -1,0 +1,3 @@
+[submodule "libdevic"]
+	path = libdevic
+	url = git@github.com:LaXiS96/libdevic.git

@@ -33,6 +33,7 @@ https://cdn-shop.adafruit.com/datasheets/SSD1306.pdf
 
 ## TODO
 - add libdevic submodule and migrate I2C, INA226, SSD1306 drivers
+    - why not just move the sdk to libdevic?
     - consider making platform drivers not dependent on official sdk
 - interrupt/DMA based I2C transactions
 - remove alert connection since it's not used anymore

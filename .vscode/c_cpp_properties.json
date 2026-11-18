@@ -1,7 +1,7 @@
 {
     "configurations": [
         {
-            "name": "Makefile",
+            "name": "CMake",
             "configurationProvider": "ms-vscode.cmake-tools"
         }
     ],
